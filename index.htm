@@ -1,130 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SheSafe – Women Safety</title>
+  <title>She Shield – Women Safety</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #F5EFE6;
-}
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #F5EFE6;
+      padding: 20px;
+    }
 
-.container {
-  max-width: 420px;
-  margin: auto;
-  padding: 20px;
-}
+    h1 {
+      text-align: center;
+      color: #F28C28;
+    }
 
-h1 {
-  text-align: center;
-  color: #F28C28;
-}
+    button {
+      width: 100%;
+      padding: 15px;
+      margin: 10px 0;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      background: #F28C28;
+      color: white;
+      cursor: pointer;
+    }
 
-.btn {
-  background: white;
-  border-left: 6px solid #F28C28;
-  padding: 16px;
-  margin: 14px 0;
-  border-radius: 14px;
-  font-size: 18px;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.12);
-}
-
-.btn:active {
-  transform: scale(0.98);
-  background: #FFF3E0;
-}
-
-.status {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #5D4037;
-}
-</style>
+    button:hover {
+      background: #e07b1f;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="container">
-  <h1>SheSafe</h1>
+<h1>She Shield</h1>
 
-  <div class="btn" onclick="emergencySOS()">🚨 Emergency SOS</div>
-  <div class="btn" onclick="playSiren()">🔊 Siren Alert</div>
-  <div class="btn" onclick="shareLocation()">📍 Share Live Location</div>
-  <div class="btn" onclick="voiceSOS()">🎤 Voice SOS</div>
+<button onclick="siren()">🔊 Siren</button>
+<button onclick="sos()">🚨 Emergency SOS</button>
+<button onclick="locationShare()">📍 Share Live Location</button>
 
-  <div class="status" id="status">Status: Ready</div>
-</div>
+<audio id="alarm" src="https://actions.google.com/sounds/v1/alarms/emergency_alarm.ogg"></audio>
 
 <script>
-let audioCtx;
-let oscillator;
-
-function playSiren() {
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  oscillator = audioCtx.createOscillator();
-  oscillator.type = "sawtooth";
-  oscillator.frequency.setValueAtTime(900, audioCtx.currentTime);
-  oscillator.connect(audioCtx.destination);
-  oscillator.start();
-
-  document.getElementById("status").innerText = "Status: Siren ON";
-
-  setTimeout(() => {
-    oscillator.stop();
-    document.getElementById("status").innerText = "Status: Siren OFF";
-  }, 4000);
+function siren() {
+  document.getElementById("alarm").play();
+  alert("Siren Activated");
 }
 
-function emergencySOS() {
-  playSiren();
-  alert("🚨 EMERGENCY SOS ACTIVATED!");
+function sos() {
+  document.getElementById("alarm").play();
+  alert("Emergency SOS Activated!");
 }
 
-function shareLocation() {
-  if (!navigator.geolocation) {
-    alert("Geolocation not supported");
-    return;
-  }
-
+function locationShare() {
   navigator.geolocation.getCurrentPosition(
-    pos => {
+    function(pos) {
       alert(
-        "📍 Location Shared\nLatitude: " +
-        pos.coords.latitude +
-        "\nLongitude: " +
-        pos.coords.longitude
+        "Latitude: " + pos.coords.latitude +
+        "\nLongitude: " + pos.coords.longitude
       );
     },
-    () => {
-      alert("Location permission denied. Enable it in browser settings.");
+    function() {
+      alert("Location permission denied");
     }
   );
-}
-
-function voiceSOS() {
-  if (!('webkitSpeechRecognition' in window)) {
-    alert("Voice SOS works only in Chrome browser");
-    return;
-  }
-
-  const recognition = new webkitSpeechRecognition();
-  recognition.lang = "en-IN";
-
-  recognition.onresult = function(event) {
-    const speech = event.results[0][0].transcript.toLowerCase();
-    if (speech.includes("help") || speech.includes("sos")) {
-      emergencySOS();
-    } else {
-      alert("Say 'help' or 'SOS'");
-    }
-  };
-
-  recognition.start();
 }
 </script>
 
