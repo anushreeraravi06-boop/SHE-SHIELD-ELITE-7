@@ -1,72 +1,160 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>She Shield – Women Safety</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>She-Shield | Step-by-Step Safety</title>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #F5EFE6;
-      padding: 20px;
-    }
-
-    h1 {
-      text-align: center;
-      color: #F28C28;
-    }
-
-    button {
-      width: 100%;
-      padding: 15px;
-      margin: 10px 0;
-      font-size: 18px;
-      border: none;
-      border-radius: 10px;
-      background: #F28C28;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #e07b1f;
-    }
-  </style>
+<style>
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:#f5efe6;
+  color:#3a2c2c;
+}
+.container{
+  max-width:420px;
+  margin:auto;
+  padding:16px;
+}
+h1{
+  text-align:center;
+  color:#e07a5f;
+}
+.step{
+  background:#fffaf3;
+  padding:14px;
+  border-radius:14px;
+  margin-bottom:14px;
+  box-shadow:0 6px 16px rgba(0,0,0,0.08);
+}
+.step h3{
+  margin:0 0 8px;
+  color:#e07a5f;
+}
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+}
+.primary{background:#e07a5f;color:white;}
+.secondary{background:#f4a261;color:white;}
+.muted{background:#eee;}
+small{opacity:.7}
+</style>
 </head>
 
 <body>
 
-<h1>She Shield</h1>
+<!-- ENABLE SCREEN -->
+<div id="enableScreen" style="position:fixed;inset:0;background:#000000c0;display:flex;align-items:center;justify-content:center;z-index:9999">
+  <div style="background:#fffaf3;padding:20px;border-radius:14px;text-align:center">
+    <h2>Enable Safety System</h2>
+    <p><small>Required to allow sound, mic & location</small></p>
+    <button class="primary" onclick="enableSystem()">Enable</button>
+  </div>
+</div>
 
-<button onclick="siren()">🔊 Siren</button>
-<button onclick="sos()">🚨 Emergency SOS</button>
-<button onclick="locationShare()">📍 Share Live Location</button>
+<div class="container">
+<h1>She-Shield</h1>
 
-<audio id="alarm" src="https://actions.google.com/sounds/v1/alarms/emergency_alarm.ogg"></audio>
+<!-- STEP 1 -->
+<div class="step">
+  <h3>STEP 1 – Siren Alert</h3>
+  <button class="primary" onclick="startSiren()">🔊 Start Siren</button>
+  <button class="muted" onclick="stopSiren()">Stop Siren</button>
+</div>
+
+<!-- STEP 2 -->
+<div class="step">
+  <h3>STEP 2 – Emergency SOS</h3>
+  <button class="primary" onclick="emergencySOS()">🚨 Emergency SOS</button>
+</div>
+
+<!-- STEP 3 -->
+<div class="step">
+  <h3>STEP 3 – Share Live Location</h3>
+  <button class="secondary" onclick="shareLocation()">📍 Share Location (WhatsApp)</button>
+</div>
+
+<!-- STEP 4 -->
+<div class="step">
+  <h3>STEP 4 – Voice SOS</h3>
+  <button class="secondary" onclick="startVoice()">🎙️ Say “HELP”</button>
+  <small>Works after Enable (Chrome)</small>
+</div>
+
+<!-- STEP 5 -->
+<div class="step">
+  <h3>STEP 5 – Emergency Helplines</h3>
+  <a href="tel:112"><button class="primary">🚔 Police 112</button></a><br><br>
+  <a href="tel:181"><button class="secondary">👩 Women Helpline 181</button></a><br><br>
+  <a href="tel:108"><button class="muted">🚑 Ambulance 108</button></a>
+</div>
+
+<div id="status"><small>Status: Ready</small></div>
+</div>
 
 <script>
-function siren() {
-  document.getElementById("alarm").play();
-  alert("Siren Activated");
+let audioCtx, osc, recognition;
+
+function enableSystem(){
+  document.getElementById("enableScreen").style.display="none";
+  audioCtx = new (window.AudioContext||webkitAudioContext)();
+  audioCtx.resume();
+  setStatus("System enabled");
 }
 
-function sos() {
-  document.getElementById("alarm").play();
-  alert("Emergency SOS Activated!");
+function startSiren(){
+  osc = audioCtx.createOscillator();
+  osc.type="sawtooth";
+  osc.frequency.value=700;
+  osc.connect(audioCtx.destination);
+  osc.start();
+  navigator.vibrate?.([400,200,400]);
+  setStatus("Siren ON");
+}
+function stopSiren(){
+  osc?.stop();
+  navigator.vibrate?.(0);
+  setStatus("Siren OFF");
 }
 
-function locationShare() {
-  navigator.geolocation.getCurrentPosition(
-    function(pos) {
-      alert(
-        "Latitude: " + pos.coords.latitude +
-        "\nLongitude: " + pos.coords.longitude
-      );
-    },
-    function() {
-      alert("Location permission denied");
+function emergencySOS(){
+  startSiren();
+  shareLocation();
+  setStatus("Emergency SOS activated");
+}
+
+function shareLocation(){
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const msg=`I need help! My location: https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
+    window.open("https://wa.me/?text="+encodeURIComponent(msg));
+  });
+}
+
+function startVoice(){
+  const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){alert("Voice not supported");return;}
+  recognition = new SR();
+  recognition.lang="en-US";
+  recognition.onresult=e=>{
+    const text=e.results[0][0].transcript.toLowerCase();
+    setStatus("Heard: "+text);
+    if(text.includes("help")||text.includes("sos")){
+      emergencySOS();
     }
-  );
+  };
+  recognition.start();
+  setStatus("Listening… say HELP");
+}
+
+function setStatus(t){
+  document.getElementById("status").innerHTML="<small>Status: "+t+"</small>";
 }
 </script>
 
